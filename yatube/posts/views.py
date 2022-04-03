@@ -9,7 +9,9 @@ from .forms import PostForm
 
 
 def page_paginator(request, post_list):
-    return Paginator(post_list, settings.MAX_PAGE_COUNT).get_page(request.GET.get('page'))
+    return Paginator(post_list, settings.MAX_PAGE_COUNT).get_page(
+        request.GET.get('page')
+    )
 
 
 def index(request):
