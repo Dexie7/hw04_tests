@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.core.paginator import Paginator
 from django.contrib.auth.models import User
 from django.shortcuts import redirect, render, get_object_or_404
@@ -8,7 +9,7 @@ from .forms import PostForm
 
 
 def page_paginator(request, post_list):
-    return Paginator(post_list, 10).get_page(request.GET.get('page'))
+    return Paginator(post_list, settings.MAX_PAGE_COUNT).get_page(request.GET.get('page'))
 
 
 def index(request):
