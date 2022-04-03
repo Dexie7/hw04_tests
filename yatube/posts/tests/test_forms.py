@@ -12,16 +12,15 @@ class PostFormTests(TestCase):
         super().setUpClass()
         cls.user = User.objects.create_user(username='Vlad')
         cls.group = Group.objects.create(
-            title='Заголовок', 
-            slug='test_slug', 
-            description='текстовое поле' 
+            title='Заголовок',
+            slug='test_slug',
+            description='текстовое поле'
         )
-        cls.group_new = Group.objects.create( 
-            title='Заголовок_новый', 
-            slug='test_slug_new', 
-            description='текстовое поле' 
-
-        ) 
+        cls.group_new = Group.objects.create(
+            title='Заголовок_новый',
+            slug='test_slug_new',
+            description='текстовое поле'
+        )
         cls.post = Post.objects.create(
             text='Тестовый текст',
             author=cls.user,
@@ -46,7 +45,7 @@ class PostFormTests(TestCase):
         last_post = Post.objects.last()
         self.assertRedirects(
             response, reverse(
-                'posts:profile', 
+                'posts:profile',
                 kwargs={'username': f'{self.user}'}
             ))
         self.assertEqual(Post.objects.count(), post_count + 1)
@@ -76,8 +75,3 @@ class PostFormTests(TestCase):
         self.assertEqual(Post.objects.count(), post_count)
         self.assertEqual(post_fin.text, form_data['text'])
         self.assertEqual(post_fin.group.id, form_data['group'])
-        # self.assertTrue( 
-        #     Post.objects.filter( 
-        #         text='Тестовый тест 2',
-        #         group=self.group_new.id 
-        #     ).exists()) 
