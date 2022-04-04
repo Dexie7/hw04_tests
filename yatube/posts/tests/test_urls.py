@@ -75,8 +75,8 @@ class URLTests(TestCase):
         """Перенаправление пользователя."""
         for address, redirect in self.redirects_urls.items():
             with self.subTest(address=address):
-                response = self.guest.get(address)
-                self.assertEqual(self.guest.get(address).status_code, HTTPStatus.FOUND)
+                self.assertEqual(self.guest.get(address).status_code,
+                                 HTTPStatus.FOUND)
                 self.assertRedirects(self.guest.get(address), redirect)
 
     def test_urls_uses_correct_template(self):
