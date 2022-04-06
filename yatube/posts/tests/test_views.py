@@ -59,8 +59,8 @@ class PostPagesTests(TestCase):
                 self.assertEqual(POST_TEST_TEXT, post.text)
                 self.assertEqual(self.user.username, post.author.username)
                 self.assertEqual(self.group.title, post.group.title)
-                self.assertEqual(self.group.description, post.group.description)
-
+                self.assertEqual(self.group.description,
+                                 post.group.description)
 
     def test_slug_pages_shows_correct_context(self):
         """Страница post сформирована с правильным контекстом."""
