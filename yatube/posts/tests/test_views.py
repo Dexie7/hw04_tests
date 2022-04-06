@@ -7,20 +7,26 @@ from django.urls import reverse
 
 from posts.models import Group, Post, User
 from yatube.settings import MAX_PAGE_COUNT
-from. import constants as c
 
 
+AUTHOR = 'user_test'
+GROUP_TITLE = 'Тестовый заголовок'
+GROUP_SLUG = 'test-slug'
+GROUP_DESCRIPTION = 'Описание тестовой группы'
 POST_TEST_TEXT = "Ж" * 50
 URL_404 = "404/"
+INDEX_URL = reverse('posts:index')
+GROUP_URL = reverse('posts:group_list', kwargs={'slug': GROUP_SLUG})
+PROFILE_URL = reverse('posts:profile', args=[AUTHOR])
 
 
 class PostPagesTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.group = Group.objects.create(title=c.GROUP_TITLE,
-                                         slug=c.GROUP_SLUG,
-                                         description=c.GROUP_DESC)
+        cls.group = Group.objects.create(title=GROUP_TITLE,
+                                         slug=GROUP_SLUG,
+                                         description=GROUP_DESCRIPTION)
         settings.MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
 
     @classmethod
@@ -31,50 +37,39 @@ class PostPagesTests(TestCase):
     def setUp(self):
         # первый клиент автор поста
         self.guest = Client()
-        self.user = User.objects.create_user(username=c.AUTHOR)
+        self.user = User.objects.create_user(username=AUTHOR)
         self.author = Client()
         self.author.force_login(self.user)
-        # второй клиент не автор поста
-        self.author_2 = Client()
-        self.user_2 = User.objects.create_user(username=c.AUTHOR_2)
-        self.author_2 = Client()
-        self.author_2.force_login(self.user_2)
 
         # создание поста
         self.post = Post.objects.create(text=POST_TEST_TEXT,
                                         group=self.group,
                                         author=self.user)
-        # библиотека юрлов
-        self.post_id = self.post.id
-        self.group_page = reverse('posts:group_list', args=[self.group.slug])
-        self.profile_page = reverse('posts:profile', args=[self.user])
-        self.post_url = reverse('posts:post_detail', args=[self.post_id])
-        self.edit_url = reverse('posts:post_edit', args=[self.post.id])
 
     # Проверяем контекст
     def test_main_group_pages_shows_correct_context(self):
         """Страница index, group, profile сформированы
         с правильным контекстом."""
-        urls = [c.INDEX_URL, self.group_page, self.profile_page, ]
+        urls = [INDEX_URL, GROUP_URL, PROFILE_URL]
 
         for url in urls:
             with self.subTest(url=url):
                 response = self.guest.get(url)
                 post = response.context['page_obj'][0]
-                self.assertEqual(Post.objects.count(), 1)
                 self.assertEqual(POST_TEST_TEXT, post.text)
                 self.assertEqual(self.user.username, post.author.username)
                 self.assertEqual(self.group.title, post.group.title)
+                self.assertEqual(self.group.description, post.group.description)
+
 
     def test_slug_pages_shows_correct_context(self):
         """Страница post сформирована с правильным контекстом."""
-        url = self.post_url
+        url = reverse('posts:post_detail', args=[self.post.id])
         response = self.guest.get(url)
         post = response.context['post']
         self.assertEqual(Post.objects.count(), 1)
         self.assertEqual(POST_TEST_TEXT, post.text)
         self.assertEqual(self.user.username, post.author.username)
-        self.assertEqual(self.group.title, post.group.title)
         self.assertEqual(self.group.title, post.group.title)
 
 
@@ -91,7 +86,6 @@ class PaginatorViewsTest(TestCase):
                                 author=author)
         slug = self.group.slug
         self.guest_client = Client()
-        self.user = User.objects.create_user(username='IvanovI')
         self.group_page = reverse('posts:group_list', args=[slug])
 
     def test_pages_contain_needed_number_of_records(self):
@@ -101,9 +95,9 @@ class PaginatorViewsTest(TestCase):
         number_pages = posts_count // MAX_PAGE_COUNT + var
         last_page = posts_count - (MAX_PAGE_COUNT * (number_pages - var))
         urls = [
-            [c.INDEX_URL, last_page],
+            [INDEX_URL, last_page],
             [self.group_page, last_page],
-            [f'{c.INDEX_URL}?page={number_pages}', last_page],
+            [f'{INDEX_URL}?page={number_pages}', last_page],
             [f'{self.group_page}?page={number_pages}', last_page],
         ]
         for url, length in urls:

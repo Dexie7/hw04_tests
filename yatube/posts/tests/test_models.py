@@ -1,24 +1,30 @@
 from django.test import TestCase
 
 from ..models import Group, Post, User
-from. import constants as c
+
+
+AUTHOR = 'user_test'
+POST_TEXT = 'Тестовый тест'
+GROUP_TITLE = 'Тестовый заголовок'
+GROUP_SLUG = 'test-slug'
+GROUP_DESCRIPTION = 'Описание тестовой группы'
 
 
 class PostModelTest(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username=c.AUTHOR)
+        cls.user = User.objects.create_user(username=AUTHOR)
 
         cls.group = Group.objects.create(
-            title=c.GROUP_TITLE,
-            slug=c.GROUP_SLUG,
-            description=c.GROUP_SLUG,
+            title=GROUP_TITLE,
+            slug=GROUP_SLUG,
+            description=GROUP_DESCRIPTION,
         )
 
         cls.post = Post.objects.create(
             author=cls.user,
-            text=c.POST_TEXT,
+            text=POST_TEXT,
         )
 
     def test_models_have_correct_object_names(self):

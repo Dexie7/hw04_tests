@@ -2,18 +2,26 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from ..models import Post, Group, User
-from. import constants as c
+
+
+AUTHOR = 'user_test'
+POST_TEXT = 'Тестовый тест'
+GROUP_TITLE = 'Тестовый заголовок'
+GROUP_SLUG = 'test-slug'
+GROUP_DESCRIPTION = 'Описание тестовой группы'
+NEW_URL = reverse('posts:post_create')
+PROFILE_URL = reverse('posts:profile', args=[AUTHOR])
 
 
 class PostFormTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.user = User.objects.create_user(username=c.AUTHOR)
+        cls.user = User.objects.create_user(username=AUTHOR)
         cls.group = Group.objects.create(
-            title=c.GROUP_TITLE,
-            slug=c.GROUP_SLUG,
-            description=c.GROUP_DESC
+            title=GROUP_TITLE,
+            slug=GROUP_SLUG,
+            description=GROUP_DESCRIPTION
         )
         cls.new_group = Group.objects.create(
             title='Заголовок_новый',
@@ -21,7 +29,7 @@ class PostFormTests(TestCase):
             description='текстовое поле'
         )
         cls.post = Post.objects.create(
-            text=c.POST_TEXT,
+            text=POST_TEXT,
             author=cls.user,
             group=cls.group
         )
@@ -36,23 +44,26 @@ class PostFormTests(TestCase):
 
     def test_creat_new_post(self):
         post_count = Post.objects.count()
-        posts_id = [post.id for post in Post.objects.all()]
+        posts = set(Post.objects.all())
+        # posts_id = [post.id for post in Post.objects.all()]
         form_data = {
             'text': 'test_text',
             'group': self.group.id,
         }
         response_post = self.authorized_client.post(
-            c.NEW_URL,
+            NEW_URL,
             data=form_data,
             follow=True
         )
         posts_new_id = [post.id for post in response_post.context['page_obj']]
-        list_post_id = list(set(posts_new_id) - set(posts_id))
-        self.assertRedirects(response_post, c.PROFILE_URL)
-        self.assertEqual(len(list_post_id), 1)
-        post = [
-            post for post in response_post.context['page_obj']
-            if post.id == list_post_id[0]][0]
+        posts = set(Post.objects.all()) - posts
+        # list_post_id = list(set(posts_new_id) - set(posts_id))
+        self.assertRedirects(response_post, PROFILE_URL)
+        self.assertEqual(len(posts), 1)
+        post = posts.pop()
+        # post = [
+        #     post for post in response_post.context['page_obj']
+        #     if post.id == list_post_id[0]][0]
         self.assertEqual(post.group.id, form_data['group'])
         self.assertEqual(post.text, form_data['text'])
         self.assertEqual(post.author, self.user)

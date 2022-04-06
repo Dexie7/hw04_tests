@@ -1,14 +1,20 @@
-from http import HTTPStatus
-
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from posts.models import Group, Post, User
-from. import constants as c
 
 
+AUTHOR = 'user_test'
+POST_TEXT = 'Тестовый тест'
+GROUP_TITLE = 'Тестовый заголовок'
+GROUP_SLUG = 'test-slug'
+GROUP_DESCRIPTION = 'Описание тестовой группы'
 AUTH = reverse('login')
 FAKE_PAGE = '/fake/page'
+INDEX_URL = reverse('posts:index')
+NEW_URL = reverse('posts:post_create')
+GROUP_URL = reverse('posts:group_list', kwargs={'slug': GROUP_SLUG})
+PROFILE_URL = reverse('posts:profile', args=[AUTHOR])
 
 
 class URLTests(TestCase):
@@ -16,11 +22,11 @@ class URLTests(TestCase):
     def setUpClass(cls):
         super().setUpClass()
         cls.some_user = User.objects.create_user(username='someuser')
-        cls.user = User.objects.create_user(username=c.AUTHOR)
+        cls.user = User.objects.create_user(username=AUTHOR)
         cls.group = Group.objects.create(
-            title=c.GROUP_TITLE,
-            description=c.GROUP_DESC,
-            slug=c.GROUP_SLUG
+            title=GROUP_TITLE,
+            description=GROUP_DESCRIPTION,
+            slug=GROUP_SLUG
         )
         cls.post = Post.objects.create(
             text='a' * 20,
@@ -56,14 +62,14 @@ class URLTests(TestCase):
         REDIRECT = 302
         NOT_FOUND = 404
         url_names = [
-            [self.author, c.NEW_URL, SUCCESS],
+            [self.author, NEW_URL, SUCCESS],
             [self.author, self.POST_EDIT, SUCCESS],
             [self.another, self.POST_EDIT, REDIRECT],
-            [self.guest, c.INDEX_URL, SUCCESS],
-            [self.guest, c.NEW_URL, REDIRECT],
+            [self.guest, INDEX_URL, SUCCESS],
+            [self.guest, NEW_URL, REDIRECT],
             [self.guest, self.POST_EDIT, REDIRECT],
-            [self.guest, c.GROUP_URL, SUCCESS],
-            [self.guest, c.PROFILE_URL, SUCCESS],
+            [self.guest, GROUP_URL, SUCCESS],
+            [self.guest, PROFILE_URL, SUCCESS],
             [self.guest, self.VIEW_POST, SUCCESS],
             [self.guest, FAKE_PAGE, NOT_FOUND]
         ]
@@ -73,19 +79,37 @@ class URLTests(TestCase):
 
     def test_redirect(self):
         """Перенаправление пользователя."""
-        for address, redirect in self.redirects_urls.items():
-            with self.subTest(address=address):
-                self.assertEqual(self.guest.get(address).status_code,
-                                 HTTPStatus.FOUND)
-                self.assertRedirects(self.guest.get(address), redirect)
+        templates_url_names = [
+            [
+                self.another,
+                self.POST_EDIT,
+                self.VIEW_POST
+            ],
+            [
+                self.guest,
+                NEW_URL,
+                AUTH + '?next=' + NEW_URL
+            ],
+            [
+                self.guest,
+                self.POST_EDIT,
+                AUTH + '?next=' + self.POST_EDIT
+            ],
+        ]
+        for client, url, url_redirect in templates_url_names:
+            with self.subTest(url=url):
+                self.assertRedirects(client.get(url), url_redirect)
+        # for address, redirect in templates_url_names:
+        #     with self.subTest(address=address):
+        #         self.assertRedirects(self.guest.get(address), redirect)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
         templates_url_names = {
-            c.INDEX_URL: 'posts/index.html',
-            c.NEW_URL: 'posts/create_post.html',
-            c.GROUP_URL: 'posts/group_list.html',
-            c.PROFILE_URL: 'posts/profile.html',
+            INDEX_URL: 'posts/index.html',
+            NEW_URL: 'posts/create_post.html',
+            GROUP_URL: 'posts/group_list.html',
+            PROFILE_URL: 'posts/profile.html',
             self.VIEW_POST: 'posts/post_detail.html',
             self.POST_EDIT: 'posts/create_post.html',
         }
