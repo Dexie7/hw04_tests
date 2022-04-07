@@ -32,27 +32,12 @@ class PostModelTest(TestCase):
         self.assertEqual(str(self.post), self.post.text[:15])
 
     def test_verbose_name(self):
-        post = PostModelTest.post
-        field_verboses = {
-            'text': 'Текст поста',
-            'group': 'Группа'
-        }
-        for field, expected_value in field_verboses.items():
-            with self.subTest(field=field):
-                self.assertEqual(
-                    post._meta.get_field(field).verbose_name,
-                    expected_value
-                )
+        self.assertEquals(Post._meta.get_field("text").verbose_name,
+                          "Текст поста")
+        self.assertEquals(Post._meta.get_field("group").verbose_name, "Группа")
 
-    def test_help_text(self):
-        post = PostModelTest.post
-        field_help_text = {
-            'text': 'Текст поста',
-            'group': 'Группа'
-        }
-        for field, expected_value in field_help_text.items():
-            with self.subTest(field=field):
-                self.assertEqual(
-                    post._meta.get_field(field).verbose_name,
-                    expected_value
-                )
+    def test_text_help_text(self):
+        self.assertEquals(Post._meta.get_field("text").help_text,
+                          "Введите текст поста")
+        self.assertEquals(Post._meta.get_field("group").help_text,
+                          "Группа, к которой будет относиться пост")

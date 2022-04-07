@@ -103,5 +103,5 @@ class PaginatorViewsTest(TestCase):
         for url, length in urls:
             with self.subTest(url=url):
                 response = self.guest_client.get(url)
-                len_list = len(response.context.get('page_obj').object_list)
+                len_list = len(response.context['page_obj'])
                 self.assertEqual(len_list, length)

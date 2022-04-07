@@ -42,12 +42,6 @@ class URLTests(TestCase):
             kwargs={
                 'post_id': cls.post.id}
         )
-        cls.redirects_urls = {
-            '/create/':
-                '/auth/login/?next=/create/',
-            f'/posts/{cls.post.pk}/edit/':
-                f'/auth/login/?next=/posts/{cls.post.pk}/edit/'
-        }
 
     def setUp(self):
         self.guest = Client()
@@ -80,28 +74,14 @@ class URLTests(TestCase):
     def test_redirect(self):
         """Перенаправление пользователя."""
         templates_url_names = [
-            [
-                self.another,
-                self.POST_EDIT,
-                self.VIEW_POST
-            ],
-            [
-                self.guest,
-                NEW_URL,
-                AUTH + '?next=' + NEW_URL
-            ],
-            [
-                self.guest,
-                self.POST_EDIT,
-                AUTH + '?next=' + self.POST_EDIT
-            ],
+            [self.another, self.POST_EDIT, self.VIEW_POST],
+            [self.guest, NEW_URL, AUTH + '?next=' + NEW_URL],
+            [self.guest, self.POST_EDIT, AUTH + '?next=' + self.POST_EDIT],
         ]
         for client, url, url_redirect in templates_url_names:
             with self.subTest(url=url):
-                self.assertRedirects(client.get(url), url_redirect)
-        # for address, redirect in templates_url_names:
-        #     with self.subTest(address=address):
-        #         self.assertRedirects(self.guest.get(address), redirect)
+                self.assertRedirects(client.get(url, follow=True),
+                                     url_redirect)
 
     def test_urls_uses_correct_template(self):
         """URL-адрес использует соответствующий шаблон."""
